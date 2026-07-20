@@ -46,6 +46,8 @@ public class DiscordService
 
     public void Update(string game, string? details, string? imageKey, DateTime? startTime)
     {
+
+
         _client.SetPresence(new RichPresence
         {
             Type = ActivityType.Playing,

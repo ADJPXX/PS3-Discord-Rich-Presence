@@ -20,8 +20,6 @@ public static class Program
 
         Console.WriteLine("Verificando PS3...");
 
-        discord.Connect();
-
         while (true)
         {
             if (!await webMan.IsPS3OnlineAsync())
@@ -52,10 +50,7 @@ public static class Program
 
             var (currentGame, currentTime) = await webMan.GetCurrentTime(oldTime, oldGame!, game?.Name);
 
-
-
-            discord.Update(game.Name!, $"{game.CpuTemperature} | {game.RsxTemperature}", image, currentTime);
-
+            discord.Update(game.Name!, $"", image, currentTime);
 
             if (game != null)
             {
