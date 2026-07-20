@@ -4,8 +4,6 @@ namespace PS3DiscordRichPresence;
 
 public static class Program
 {
-
-
     public static async Task Main(string[] args)
     {
         var config = ConfigService.LerJson();
@@ -13,6 +11,8 @@ public static class Program
         var discord = new DiscordService(config.ClientId);
 
         var webMan = new WebManService(config);
+
+        var imageService = new GameImageService();
 
         var oldTime = DateTime.UtcNow;
 
@@ -36,6 +36,8 @@ public static class Program
 
             var game = await webMan.GetGameInfoAsync();
 
+            var image = await imageService.GetImageAsync(game.TitleId);
+
             if (!await discord.IsDiscordOnlineAsync())
             {
                 Console.Clear();
@@ -50,21 +52,17 @@ public static class Program
 
             var (currentGame, currentTime) = await webMan.GetCurrentTime(oldTime, oldGame!, game?.Name);
 
-            if (config.ShowTemperature)
-            {
-                discord.Update(game.Name!, $"{game.CpuTemperature} | {game.RsxTemperature}", "xmb", currentTime);
-            }
 
-            else
-            {
-                discord.Update(game.Name!, "Jogando no PlayStation 3", "xmb", currentTime);
-            }
+
+            discord.Update(game.Name!, $"{game.CpuTemperature} | {game.RsxTemperature}", image, currentTime);
+
 
             if (game != null)
             {
                 Console.Clear();
 
                 Console.WriteLine(game.Name);
+                Console.WriteLine(game.TitleId);
                 Console.WriteLine(game.CpuTemperature);
                 Console.WriteLine(game.RsxTemperature);
             }

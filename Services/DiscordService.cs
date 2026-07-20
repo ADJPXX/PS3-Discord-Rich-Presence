@@ -48,6 +48,7 @@ public class DiscordService
     {
         _client.SetPresence(new RichPresence
         {
+            Type = ActivityType.Playing,
             Details = game,
             State = details,
 

@@ -52,6 +52,7 @@ public class HtmlParserService
         if (game.IsOnXmb)
         {
             game.Name = "XMB";
+            game.TitleId = null;
             return;
         }
 
@@ -61,6 +62,7 @@ public class HtmlParserService
         {
             //ESTA ENTRANDO AQUI SEMPRE, VERIFICAR DEPOIS!
             game.Name = "Desconhecido";
+            game.TitleId = null;
             return;
         }
 
