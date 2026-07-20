@@ -22,6 +22,26 @@ public static class Program
 
         while (true)
         {
+            if (!discord.ConnectPipe())
+            {
+                Console.WriteLine("discord esta OFFLINE.");
+            }
+
+            discord.Connect();
+
+            var game = await webMan.GetGameInfoAsync();
+
+            var image = await imageService.GetImageAsync(game.TitleId);
+
+            var (currentGame, currentTime) = await webMan.GetCurrentTime(oldTime, oldGame!, game?.Name);
+
+            discord.SetActivity(game.Name);
+
+            discord.Update(game.Name!, $"", image, currentTime);
+        }
+
+        while (true)
+        {
             if (!await webMan.IsPS3OnlineAsync())
             {
                 Console.Clear();
