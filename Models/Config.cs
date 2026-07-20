@@ -12,8 +12,6 @@ public class Config
 
     public bool ShowTemperature { get; set; }
 
-    public bool ShowElapsedTime { get; set; }
-
     public bool ShowRetroCovers { get; set; }
 
     public bool MinimizeToTray { get; set; }

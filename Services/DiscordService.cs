@@ -2,19 +2,19 @@
 using System.Text;
 using System.Text.Json;
 using System.Diagnostics;
-using DiscordRPC;
+using PS3DiscordRichPresence.Models;
 
 namespace PS3DiscordRichPresence.Services;
 
 public class DiscordService
 {
-    private readonly DiscordRpcClient _client;
+    private readonly long _clientId;
 
-    private static NamedPipeClientStream? _pipe;
+    private NamedPipeClientStream? _pipe;
 
     public DiscordService(long clientId)
     {
-        _client = new DiscordRpcClient(clientId.ToString());
+        _clientId = clientId;
     }
 
 
@@ -29,53 +29,9 @@ public class DiscordService
     }
 
 
-    public void Connect()
-    {
-        try
-        {
-            _client.Initialize();
-        }
-        catch
-        {
-            //ignored
-        }
-    }
-
-
-    public void Disconnect()
-    {
-        _client.Dispose();
-    }
-
-
-    public void Clear()
-    {
-        _client.ClearPresence();
-    }
-
-
-    public void Update(string game, string? details, string? imageKey, DateTime? startTime)
-    {
-        _client.SetPresence(new RichPresence
-        {
-            Type = ActivityType.Playing,
-            Details = game,
-            State = details,
-
-            Assets = new Assets
-            {
-                LargeImageKey = imageKey,
-                LargeImageText = game
-            },
-
-            Timestamps = startTime == null ? null : new Timestamps(startTime.Value)
-        });
-    }
-
-
     public bool ConnectPipe()
     {
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             try
             {
@@ -91,7 +47,7 @@ public class DiscordService
                 Send(0, new
                 {
                     v = 1,
-                    client_id = 1528636206638694400
+                    client_id = _clientId
                 });
 
 
@@ -113,8 +69,33 @@ public class DiscordService
     }
 
 
-    public void SetActivity(string game, string? details="", string state="")
+    public void Update(GameInfo game, string? state, string image, DateTime? startTime)
     {
+        var activity = new Dictionary<string, object?>
+        {
+            ["name"] = game.Name,
+            ["details"] = "PlayStation 3",
+
+            ["assets"] = new
+            {
+                large_image = image,
+                large_text = game.Name
+            }
+        };
+
+        if (!string.IsNullOrEmpty(state))
+        {
+            activity["state"] = state;
+        }
+
+        if (startTime != null)
+        {
+            activity["timestamps"] = new
+            {
+                start = new DateTimeOffset(startTime.Value).ToUnixTimeMilliseconds()
+            };
+        }
+
         var payload = new
         {
             cmd = "SET_ACTIVITY",
@@ -122,26 +103,13 @@ public class DiscordService
             args = new
             {
                 pid = Environment.ProcessId,
-
-                activity = new
-                {
-                    name = game,
-                    //details = game,
-                    //state = details,
-
-                    timestamps = new
-                    {
-                        start = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-                    }
-                }
+                activity
             },
 
             nonce = Guid.NewGuid().ToString()
         };
 
-
         Send(1, payload);
-
 
         Console.WriteLine("Activity enviada.");
     }
@@ -213,5 +181,18 @@ public class DiscordService
 
 
         return Encoding.UTF8.GetString(data);
+    }
+
+
+    public async Task<(string?, DateTime)> GetCurrentTime(DateTime oldTime, string oldGame, string? currentGame)
+    {
+        if (currentGame != oldGame)
+        {
+            var startTime = DateTime.UtcNow;
+
+            return (currentGame, startTime);
+        }
+
+        return (currentGame, oldTime);
     }
 }

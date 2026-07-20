@@ -63,17 +63,4 @@ public class WebManService
 
         return _parser.Parse(html);
     }
-
-
-    public async Task<(string?, DateTime)> GetCurrentTime(DateTime oldTime, string oldGame, string? currentGame)
-    {
-        if (currentGame != oldGame)
-        {
-            var startTime = DateTime.UtcNow;
-
-            return (currentGame, startTime);
-        }
-
-        return (currentGame, oldTime);
-    }
 }

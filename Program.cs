@@ -8,6 +8,8 @@ public static class Program
     {
         var config = ConfigService.LerJson();
 
+        var task = new StartupService();
+
         var discord = new DiscordService(config.ClientId);
 
         var webMan = new WebManService(config);
@@ -18,27 +20,22 @@ public static class Program
 
         string? oldGame = null;
 
+        string? state = null;
+
+        task.TaskVerification(config);
+
         Console.WriteLine("Verificando PS3...");
 
-        while (true)
+        while (!await discord.IsDiscordOnlineAsync())
         {
-            if (!discord.ConnectPipe())
-            {
-                Console.WriteLine("discord esta OFFLINE.");
-            }
+            Console.Clear();
 
-            discord.Connect();
-
-            var game = await webMan.GetGameInfoAsync();
-
-            var image = await imageService.GetImageAsync(game.TitleId);
-
-            var (currentGame, currentTime) = await webMan.GetCurrentTime(oldTime, oldGame!, game?.Name);
-
-            discord.SetActivity(game.Name);
-
-            discord.Update(game.Name!, $"", image, currentTime);
+            Console.WriteLine("Discord OFFLINE.");
+            await Task.Delay(TimeSpan.FromSeconds(config.ReconnectIntervalSeconds));
+            discord.ConnectPipe();
         }
+
+        discord.ConnectPipe();
 
         while (true)
         {
@@ -54,7 +51,7 @@ public static class Program
 
             var game = await webMan.GetGameInfoAsync();
 
-            var image = await imageService.GetImageAsync(game.TitleId);
+            var image = await imageService.GetImageAsync(game?.TitleId);
 
             if (!await discord.IsDiscordOnlineAsync())
             {
@@ -62,15 +59,19 @@ public static class Program
 
                 Console.WriteLine("Discord OFFLINE.");
                 await Task.Delay(TimeSpan.FromSeconds(config.ReconnectIntervalSeconds));
-
-                discord.Connect();
+                discord.ConnectPipe();
 
                 continue;
             }
 
-            var (currentGame, currentTime) = await webMan.GetCurrentTime(oldTime, oldGame!, game?.Name);
+            var (currentGame, currentTime) = await discord.GetCurrentTime(oldTime, oldGame!, game?.Name);
 
-            discord.Update(game.Name!, $"", image, currentTime);
+            if (config.ShowTemperature)
+            {
+                state = $"{game?.CpuTemperature} | {game?.RsxTemperature}";
+            }
+
+            discord.Update(game!, state, image, currentTime);
 
             if (game != null)
             {

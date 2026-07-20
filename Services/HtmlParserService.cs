@@ -1,5 +1,5 @@
 ﻿using System.Text.RegularExpressions;
-using HtmlAgilityPack;
+using HtmlAgilityPack; //dotnet add package HtmlAgilityPack
 
 using PS3DiscordRichPresence.Models;
 
@@ -51,7 +51,7 @@ public class HtmlParserService
     {
         if (game.IsOnXmb)
         {
-            game.Name = "XMB";
+            game.Name = "PlayStation 3";
             game.TitleId = null;
             return;
         }
@@ -60,7 +60,6 @@ public class HtmlParserService
 
         if (titleNode == null)
         {
-            //ESTA ENTRANDO AQUI SEMPRE, VERIFICAR DEPOIS!
             game.Name = "Desconhecido";
             game.TitleId = null;
             return;
