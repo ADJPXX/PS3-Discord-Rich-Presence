@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PS3DiscordRichPresence", "PS3DiscordRichPresence.csproj", "{6B9C9B34-E7B5-48E4-AE21-BD1FFB456CCA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6B9C9B34-E7B5-48E4-AE21-BD1FFB456CCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B9C9B34-E7B5-48E4-AE21-BD1FFB456CCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B9C9B34-E7B5-48E4-AE21-BD1FFB456CCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B9C9B34-E7B5-48E4-AE21-BD1FFB456CCA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
