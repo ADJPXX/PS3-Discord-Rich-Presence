@@ -20,6 +20,8 @@ public static class Program
 
         Console.WriteLine("Verificando PS3...");
 
+        discord.Connect();
+
         while (true)
         {
             if (!await webMan.IsPS3OnlineAsync())
@@ -48,7 +50,15 @@ public static class Program
 
             var (currentGame, currentTime) = await webMan.GetCurrentTime(oldTime, oldGame!, game?.Name);
 
-            discord.Update(game.Name!, $"{game.CpuTemperature} | {game.RsxTemperature}", "xmb", currentTime);
+            if (config.ShowTemperature)
+            {
+                discord.Update(game.Name!, $"{game.CpuTemperature} | {game.RsxTemperature}", "xmb", currentTime);
+            }
+
+            else
+            {
+                discord.Update(game.Name!, "Jogando no PlayStation 3", "xmb", currentTime);
+            }
 
             if (game != null)
             {
