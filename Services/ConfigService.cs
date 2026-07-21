@@ -21,7 +21,7 @@ public static class ConfigService
                 ShowTemperature = false,
                 ShowRetroCovers = true,
                 MinimizeToTray = true,
-                StartWithWindows = false
+                StartWithWindows = true
             };
 
             var jsonWrite = JsonSerializer.Serialize(configs, new JsonSerializerOptions{WriteIndented = true});
