@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Hardcodet.Wpf.TaskbarNotification;
+using PS3DiscordRichPresence.Helpers;
 using PS3DiscordRichPresence.Models;
 using PS3DiscordRichPresence.Services;
 
@@ -29,18 +30,11 @@ public partial class App : Application
 
         _config = ConfigService.LerJson();
 
-        var icoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "ps.ico");
-
         if (_config.MinimizeToTray)
         {
-            if (!File.Exists(icoPath))
-            {
-                throw new FileNotFoundException("The icon file could not be found.", icoPath);
-            }
-
             _trayIcon = new TaskbarIcon
             {
-                Icon = new System.Drawing.Icon(icoPath),
+                Icon = IconHelper.GetTrayIcon(),
                 ToolTipText = "PS3 Discord Rich Presence"
             };
 

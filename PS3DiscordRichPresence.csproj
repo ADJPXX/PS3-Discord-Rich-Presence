@@ -16,15 +16,6 @@
         <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
         <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
+        <EmbeddedResource Include="Resources\ps.ico" />
     </ItemGroup>
-
-
-    <ItemGroup>
-        <Content Include="Resources\ps.ico">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-            <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-        </Content>
-    </ItemGroup>
-
 </Project>
