@@ -12,7 +12,21 @@ public static class ConfigService
 
         if (!File.Exists(jsonPath))
         {
-            throw new FileNotFoundException("Arquivo PS3Config.json não encontrado.");
+            var configs = new Config
+            {
+                Ip = "192.168.18.100",
+                ClientId = 1528636206638694400,
+                UpdateIntervalSeconds = 15,
+                ReconnectIntervalSeconds = 30,
+                ShowTemperature = false,
+                ShowRetroCovers = true,
+                MinimizeToTray = true,
+                StartWithWindows = false
+            };
+
+            var jsonWrite = JsonSerializer.Serialize(configs, new JsonSerializerOptions{WriteIndented = true});
+
+            File.WriteAllText(jsonPath, jsonWrite);
         }
 
         var json = File.ReadAllText(jsonPath);
