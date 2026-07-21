@@ -6,5 +6,5 @@
   "ShowTemperature": false,
   "ShowRetroCovers": true,
   "MinimizeToTray": true,
-  "StartWithWindows": true
+  "StartWithWindows": false
 }

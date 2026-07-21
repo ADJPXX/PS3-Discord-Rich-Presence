@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.IO;
+using System.Text.Json;
 using PS3DiscordRichPresence.Models;
 
 namespace PS3DiscordRichPresence.Services;

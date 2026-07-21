@@ -1,4 +1,6 @@
-﻿namespace PS3DiscordRichPresence.Services;
+﻿using System.Net.Http;
+
+namespace PS3DiscordRichPresence.Services;
 
 public class GameImageService
 {

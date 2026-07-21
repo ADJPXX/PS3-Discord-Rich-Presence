@@ -1,4 +1,5 @@
-﻿using PS3DiscordRichPresence.Models;
+﻿using System.Net.Http;
+using PS3DiscordRichPresence.Models;
 
 namespace PS3DiscordRichPresence.Services;
 
