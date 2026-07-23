@@ -9,6 +9,8 @@
 
         <DebugType>None</DebugType>
         <DebugSymbols>false</DebugSymbols>
+
+        <ApplicationIcon>Resources\ps.ico</ApplicationIcon>
     </PropertyGroup>
 
 
