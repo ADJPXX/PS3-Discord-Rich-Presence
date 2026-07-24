@@ -260,6 +260,7 @@ Generated_Code/
 # because we have git ;-)
 _UpgradeReport_Files/
 Backup*/
+*.json
 UpgradeLog*.XML
 UpgradeLog*.htm
 ServiceFabricBackup/

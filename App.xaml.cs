@@ -142,7 +142,7 @@ public partial class App : Application
 
                 var ps3Online = await _webMan.IsPS3OnlineAsync();
 
-                var tooltip = "PS3 Discord Rich Presence\n\n" + $"Discord: {(discordOnline ? "✅ Conectado" : "❌ Offline")}\n" + $"PS3: {(ps3Online ? "✅ Conectado" : "❌ Offline")}";
+                var tooltip = "PS3 Discord Rich Presence\n\n" + $"Discord: {(discordOnline ? "✅ Online" : "❌ Offline")}\n" + $"PS3: {(ps3Online ? "✅ Online" : "❌ Offline")}";
 
                 if (discordOnline && ps3Online && _config != null)
                 {

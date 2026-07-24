@@ -14,7 +14,7 @@ public static class ConfigService
         {
             var configs = new Config
             {
-                Ip = "192.168.18.100",
+                Ip = "YOUR_PS3_IP_HERE",
                 ClientId = 1528636206638694400,
                 UpdateIntervalSeconds = 15,
                 ReconnectIntervalSeconds = 30,
