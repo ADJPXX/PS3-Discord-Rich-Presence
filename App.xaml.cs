@@ -94,6 +94,8 @@ public partial class App : Application
         {
             if (!await _webMan.IsPS3OnlineAsync())
             {
+                _discord.ClearActivity();
+
                 await Task.Delay(TimeSpan.FromSeconds(config.ReconnectIntervalSeconds), token);
 
                 continue;

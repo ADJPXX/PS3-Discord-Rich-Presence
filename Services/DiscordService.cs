@@ -115,6 +115,25 @@ public class DiscordService
     }
 
 
+    public void ClearActivity()
+    {
+        var payload = new
+        {
+            cmd = "SET_ACTIVITY",
+
+            args = new
+            {
+                pid = Environment.ProcessId,
+                activity = (object?)null
+            },
+
+            nonce = Guid.NewGuid().ToString()
+        };
+
+        Send(1, payload);
+    }
+
+
     private void Send(int opcode, object data)
     {
         if (_pipe == null)
