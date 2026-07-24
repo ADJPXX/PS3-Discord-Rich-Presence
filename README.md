@@ -33,11 +33,6 @@ Before using the application, make sure you have:
 
 1. Download the latest release from the **Releases** page.
 2. Run **PS3DiscordRichPresence.exe**.
-3. Close the program.
-4. Open **PS3config.json**.
-5. Set your PS3 IP where it says "YOUR_PS3_IP_HERE".
-6. Save the **PS3config.json** and close it.
-7. Run **PS3DiscordRichPresence.exe** again.
 
 No installation is required.
 
@@ -64,7 +59,7 @@ Example:
 Open the configuration file:
 
 ```text
-config.json
+PS3config.json
 ```
 
 Replace the IP address with your PS3's address.
@@ -73,7 +68,7 @@ Example:
 
 ```json
 {
-    "IpAddress": "192.168.1.35"
+    "Ip": "192.168.1.35"
 }
 ```
 
@@ -113,8 +108,9 @@ God of War III
 ### The application cannot find my PS3
 
 * Verify that your PC and PS3 are connected to the same network.
-* Make sure the IP address in `config.json` is correct.
+* Make sure the IP address in `PS3config.json` is correct.
 * Ensure that webMAN MOD is installed and running.
+* Verify if **PS3config.json** and **PS3DiscordRichPresence.exe** are in the same directory/folder.
 
 ---
 
