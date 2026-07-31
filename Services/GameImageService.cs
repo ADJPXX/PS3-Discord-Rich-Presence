@@ -27,7 +27,7 @@ public class GameImageService
         "SE", // Sweden
         "PL", // Poland
         "CZ", // Czechia
-        "HU"  // Hungary
+          // Hungary
     ];
 
     public async Task<string> GetImageAsync(string? titleId)
