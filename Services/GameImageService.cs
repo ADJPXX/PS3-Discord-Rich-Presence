@@ -6,7 +6,6 @@ public class GameImageService
 {
     private readonly HttpClient _httpClient = new();
 
-<<<<<<< HEAD
     private static readonly string[] Regions =
     [
         "US", // United States
@@ -28,11 +27,9 @@ public class GameImageService
         "SE", // Sweden
         "PL", // Poland
         "CZ", // Czechia
-          // Hungary
+        "HU"  // Hungary
     ];
 
-=======
->>>>>>> parent of cf9d789 (feat: trim game version from title and search covers across multiple GameTDB regions)
     public async Task<string> GetImageAsync(string? titleId)
     {
         if (string.IsNullOrWhiteSpace(titleId))
@@ -40,30 +37,18 @@ public class GameImageService
             return "xmb";
         }
 
-        var regions = new Dictionary<char, string>
-        {
-            ['A'] = "ZH",
-            ['E'] = "EN",
-            ['H'] = "US",
-            ['J'] = "JA",
-            ['K'] = "KO",
-            ['U'] = "US"
-        };
-
-        if (!regions.TryGetValue(titleId[2], out var region))
-        {
-            return titleId.ToLower();
-        }
-
-        var url = $"https://art.gametdb.com/ps3/cover/{region}/{titleId}.jpg";
-
         try
         {
-            var response = await _httpClient.GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
+            foreach (var region in Regions)
             {
-                return url;
+                var url = $"https://art.gametdb.com/ps3/cover/{region}/{titleId}.jpg";
+
+                using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return url;
+                }
             }
         }
         catch
