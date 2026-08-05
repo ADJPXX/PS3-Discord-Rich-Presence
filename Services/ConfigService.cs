@@ -6,7 +6,7 @@ namespace PS3DiscordRichPresence.Services;
 
 public static class ConfigService
 {
-    public static Config LerJson()
+    public static Config ReadJson()
     {
         var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PS3config.json");
 
@@ -21,7 +21,7 @@ public static class ConfigService
                 ShowTemperature = false,
                 ShowRetroCovers = true,
                 MinimizeToTray = true,
-                StartWithWindows = true
+                StartWithWindows = false
             };
 
             var jsonWrite = JsonSerializer.Serialize(configs, new JsonSerializerOptions{WriteIndented = true});
@@ -37,6 +37,9 @@ public static class ConfigService
         {
             throw new Exception("Erro ao carregar as configurações.");
         }
+
+        config.UpdateIntervalSeconds = Math.Max(config.UpdateIntervalSeconds, 3);
+        config.ReconnectIntervalSeconds = Math.Max(config.ReconnectIntervalSeconds, 10);
 
         return config;
     }

@@ -75,6 +75,8 @@ public class HtmlParserService
         }
 
         game.Name = node?.InnerText.Trim() ?? "Desconhecido";
+
+        game.Name = Regex.Replace(game.Name, @"\s+v?\d+(\.\d+)+[a-zA-Z]?$", "", RegexOptions.IgnoreCase);
     }
 
 
@@ -98,11 +100,5 @@ public class HtmlParserService
 
         game.IsRetro = false;
         game.IsOnXmb = true;
-    }
-
-
-    private void ParseImage(HtmlDocument document, GameInfo game)
-    {
-
     }
 }

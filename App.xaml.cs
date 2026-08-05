@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using Hardcodet.Wpf.TaskbarNotification;
 using PS3DiscordRichPresence.Helpers;
@@ -8,7 +7,7 @@ using PS3DiscordRichPresence.Services;
 
 namespace PS3DiscordRichPresence;
 
-public partial class App : Application
+public partial class App
 {
     private CancellationTokenSource? _cts;
 
@@ -28,7 +27,7 @@ public partial class App : Application
 
         _cts = new CancellationTokenSource();
 
-        _config = ConfigService.LerJson();
+        _config = ConfigService.ReadJson();
 
         if (_config.MinimizeToTray)
         {
@@ -75,26 +74,34 @@ public partial class App : Application
 
         var oldTime = DateTime.UtcNow;
 
+        var activityCleared = false;
+
         string? oldGame = null;
 
         string? state = null;
 
         task.TaskVerification(config);
 
-        while (!await _discord.IsDiscordOnlineAsync())
-        {
-            await Task.Delay(TimeSpan.FromSeconds(config.ReconnectIntervalSeconds), token);
-
-            _discord.ConnectPipe();
-        }
-
         _discord.ConnectPipe();
 
         while (!token.IsCancellationRequested)
         {
+            if (!await _discord.IsDiscordOnlineAsync())
+            {
+                _discord.ConnectPipe();
+
+                await Task.Delay(TimeSpan.FromSeconds(config.ReconnectIntervalSeconds), token);
+
+                continue;
+            }
+
             if (!await _webMan.IsPS3OnlineAsync())
             {
-                _discord.ClearActivity();
+                if (!activityCleared)
+                {
+                    _discord.ClearActivity();
+                    activityCleared = true;
+                }
 
                 await Task.Delay(TimeSpan.FromSeconds(config.ReconnectIntervalSeconds), token);
 
@@ -107,15 +114,6 @@ public partial class App : Application
 
             var image = await imageService.GetImageAsync(game?.TitleId);
 
-            if (!await _discord.IsDiscordOnlineAsync())
-            {
-                await Task.Delay(TimeSpan.FromSeconds(config.ReconnectIntervalSeconds), token);
-
-                _discord.ConnectPipe();
-
-                continue;
-            }
-
             var (currentGame, currentTime) = await _discord.GetCurrentTime(oldTime, oldGame!, game?.Name);
 
             if (config.ShowTemperature)
@@ -124,6 +122,8 @@ public partial class App : Application
             }
 
             _discord.Update(game!, state, image, currentTime);
+
+            activityCleared = false;
 
             oldTime = currentTime;
 

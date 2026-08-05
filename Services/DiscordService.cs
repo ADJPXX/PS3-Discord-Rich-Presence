@@ -31,6 +31,8 @@ public class DiscordService
 
     public bool ConnectPipe()
     {
+        const int timeout = 200;
+
         for (var i = 0; i < 10; i++)
         {
             try
@@ -41,7 +43,7 @@ public class DiscordService
                     PipeDirection.InOut
                 );
 
-                _pipe.Connect(2000);
+                _pipe.Connect(timeout);
 
 
                 Send(0, new
