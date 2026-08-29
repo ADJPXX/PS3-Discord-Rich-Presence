@@ -6,11 +6,11 @@ namespace PS3DiscordRichPresence.Services;
 
 public static class ConfigService
 {
+    private static readonly string JsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PS3config.json");
+
     public static Config ReadJson()
     {
-        var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PS3config.json");
-
-        if (!File.Exists(jsonPath))
+        if (!File.Exists(JsonPath))
         {
             var configs = new Config
             {
@@ -26,10 +26,12 @@ public static class ConfigService
 
             var jsonWrite = JsonSerializer.Serialize(configs, new JsonSerializerOptions{WriteIndented = true});
 
-            File.WriteAllText(jsonPath, jsonWrite);
+            File.WriteAllText(JsonPath, jsonWrite);
         }
 
-        var json = File.ReadAllText(jsonPath);
+        WaitIpChange();
+
+        var json = File.ReadAllText(JsonPath);
 
         var config = JsonSerializer.Deserialize<Config>(json);
 
@@ -42,5 +44,32 @@ public static class ConfigService
         config.ReconnectIntervalSeconds = Math.Max(config.ReconnectIntervalSeconds, 10);
 
         return config;
+    }
+
+
+    private static void WaitIpChange()
+    {
+        while (true)
+        {
+            try
+            {
+                var json = File.ReadAllText(JsonPath);
+
+                var config = JsonSerializer.Deserialize<Config>(json);
+
+                if (config != null && config.Ip != "YOUR_PS3_IP_HERE" && System.Net.IPAddress.TryParse(config.Ip, out _))
+                {
+                    return;
+                }
+            }
+
+            catch
+            {
+                //Ignores while user is editing/saving the JSON file.
+            }
+
+            Thread.Sleep(1000);
+        }
+
     }
 }

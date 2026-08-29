@@ -10,7 +10,7 @@ public class GameInfo
 
     public string? RsxTemperature { get; set; }
 
-    public bool IsRetro { get; set; }
-
     public bool IsOnXmb { get; set; }
+
+    public bool IsOnMultiman { get; set; }
 }

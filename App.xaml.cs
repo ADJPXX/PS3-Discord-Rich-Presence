@@ -158,7 +158,7 @@ public partial class App
                     }
                 }
 
-                Application.Current.Dispatcher.Invoke(() =>
+                Current.Dispatcher.Invoke(() =>
                 {
                     _trayIcon.ToolTipText = tooltip;
                 });

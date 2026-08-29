@@ -12,7 +12,7 @@ This application connects to your PS3 through **webMAN MOD** and automatically u
 * Displays the game's cover art on Discord
 * Shows CPU and RSX temperatures
 * Detects when the console is on the XMB
-* Supports PS3, PS2, PS1, and PSP games
+* Supports PS3 games
 * Automatically updates when you change games
 * Lightweight and easy to configure
 

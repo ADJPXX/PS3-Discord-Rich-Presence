@@ -49,7 +49,7 @@ public class HtmlParserService
 
     private void ParseGame(HtmlDocument? document, GameInfo game)
     {
-        if (game.IsOnXmb)
+        if (game.IsOnXmb || game.IsOnMultiman)
         {
             game.Name = "PlayStation 3";
             game.TitleId = null;
@@ -82,23 +82,25 @@ public class HtmlParserService
 
     private void ParseGameType(HtmlDocument? document, GameInfo game)
     {
-        if (document?.DocumentNode.SelectSingleNode("//a[@target='_blank']") != null)
+        var multiman = document?.DocumentNode.SelectSingleNode("//a[contains(@href, 'mmCM')]");
+
+        if (multiman != null)
         {
-            game.IsRetro = false;
             game.IsOnXmb = false;
+            game.IsOnMultiman = true;
 
             return;
         }
 
-        var retro = document?.DocumentNode.SelectSingleNode("//a[contains(@href,'PSXISO') or contains(@href,'PS2ISO')]");
-
-        if (retro != null)
+        if (document?.DocumentNode.SelectSingleNode("//a[@target='_blank']") != null)
         {
-            game.IsRetro = true;
             game.IsOnXmb = false;
+            game.IsOnMultiman = false;
+
+            return;
         }
 
-        game.IsRetro = false;
         game.IsOnXmb = true;
+        game.IsOnMultiman = false;
     }
 }
