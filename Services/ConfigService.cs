@@ -19,7 +19,6 @@ public static class ConfigService
                 UpdateIntervalSeconds = 15,
                 ReconnectIntervalSeconds = 30,
                 ShowTemperature = false,
-                ShowRetroCovers = true,
                 MinimizeToTray = true,
                 StartWithWindows = false
             };
@@ -70,6 +69,5 @@ public static class ConfigService
 
             Thread.Sleep(1000);
         }
-
     }
 }

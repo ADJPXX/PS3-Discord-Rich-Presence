@@ -10,12 +10,12 @@ public static class IconHelper
     {
         var assembly = Assembly.GetExecutingAssembly();
 
-        var resourceName = assembly
-            .GetManifestResourceNames()
-            .FirstOrDefault(x => x.EndsWith("ps.ico", StringComparison.OrdinalIgnoreCase));
+        var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(x => x.EndsWith("ps.ico", StringComparison.OrdinalIgnoreCase));
 
         if (resourceName is null)
+        {
             throw new FileNotFoundException("Ícone embutido não encontrado.");
+        }
 
         using var stream = assembly.GetManifestResourceStream(resourceName)!;
 

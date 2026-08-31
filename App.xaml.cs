@@ -100,7 +100,14 @@ public partial class App
                 if (!activityCleared)
                 {
                     _discord.ClearActivity();
+                    
                     activityCleared = true;
+
+                    oldGame = null;
+                    
+                    oldTime = DateTime.UtcNow;
+                    
+                    state = null;
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(config.ReconnectIntervalSeconds), token);
