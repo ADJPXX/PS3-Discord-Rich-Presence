@@ -16,8 +16,8 @@ public static class ConfigService
             {
                 Ip = "YOUR_PS3_IP_HERE",
                 ClientId = 1528636206638694400,
-                UpdateIntervalSeconds = 15,
-                ReconnectIntervalSeconds = 30,
+                UpdateIntervalSeconds = 3,
+                ReconnectIntervalSeconds = 10,
                 ShowTemperature = false,
                 MinimizeToTray = true,
                 StartWithWindows = false

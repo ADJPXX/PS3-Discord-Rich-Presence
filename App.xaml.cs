@@ -76,38 +76,48 @@ public partial class App
 
         var activityCleared = false;
 
+        var ps3FailedAttempts = 0;
+        
+        const int maxPs3FailedAttempts = 5;
+
         string? oldGame = null;
 
         string? state = null;
 
         task.TaskVerification(config);
-
-        _discord.ConnectPipe();
-
+        
         while (!token.IsCancellationRequested)
         {
-            if (!await _discord.IsDiscordOnlineAsync())
+            if (!_discord.IsPipeConnected)
             {
                 _discord.ConnectPipe();
 
-                await Task.Delay(TimeSpan.FromSeconds(config.ReconnectIntervalSeconds), token);
+                if (!_discord.IsPipeConnected)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(config.ReconnectIntervalSeconds), token);
 
-                continue;
+                    continue;
+                }
             }
 
             if (!await _webMan.IsPS3OnlineAsync())
             {
-                if (!activityCleared)
+                ps3FailedAttempts++;
+                
+                if (ps3FailedAttempts >= maxPs3FailedAttempts)
                 {
-                    _discord.ClearActivity();
-                    
-                    activityCleared = true;
+                    if (!activityCleared)
+                    {
+                        _discord.ClearActivity();
+                        
+                        activityCleared = true;
 
-                    oldGame = null;
-                    
-                    oldTime = DateTime.UtcNow;
-                    
-                    state = null;
+                        oldGame = null;
+
+                        oldTime = DateTime.UtcNow;
+
+                        state = null;
+                    }
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(config.ReconnectIntervalSeconds), token);
@@ -115,13 +125,15 @@ public partial class App
                 continue;
             }
 
+            ps3FailedAttempts = 0;
+            
             var game = await _webMan.GetGameInfoAsync();
 
             _currentGame = game;
 
             var image = await imageService.GetImageAsync(game?.TitleId);
 
-            var (currentGame, currentTime) = await _discord.GetCurrentTime(oldTime, oldGame!, game?.Name);
+            var (currentGame, currentTime) = DiscordService.GetCurrentTime(oldTime, oldGame!, game?.Name);
 
             if (config.ShowTemperature)
             {
@@ -147,7 +159,7 @@ public partial class App
         {
             if (_trayIcon != null && _discord != null && _webMan != null)
             {
-                var discordOnline = await _discord.IsDiscordOnlineAsync();
+                var discordOnline = _discord.IsPipeConnected;
 
                 var ps3Online = await _webMan.IsPS3OnlineAsync();
 

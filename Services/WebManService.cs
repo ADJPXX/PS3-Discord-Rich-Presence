@@ -17,7 +17,7 @@ public class WebManService
 
         _httpClient = new HttpClient
         {
-            Timeout = TimeSpan.FromSeconds(1)
+            Timeout = TimeSpan.FromSeconds(5)
         };
 
         _parser = new HtmlParserService();

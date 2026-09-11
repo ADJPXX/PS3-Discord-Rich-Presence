@@ -11,6 +11,8 @@ public class DiscordService
     private readonly long _clientId;
 
     private NamedPipeClientStream? _pipe;
+    
+    public bool IsPipeConnected => _pipe?.IsConnected == true;
 
     public DiscordService(long clientId)
     {
@@ -18,19 +20,11 @@ public class DiscordService
     }
 
 
-    public async Task<bool> IsDiscordOnlineAsync()
+    public void ConnectPipe()
     {
-        return await Task.Run(() =>
-        {
-            var processes = Process.GetProcessesByName("Discord");
-
-            return processes.Length > 0;
-        });
-    }
-
-
-    public bool ConnectPipe()
-    {
+        _pipe?.Dispose();
+        _pipe = null;
+        
         const int timeout = 200;
 
         for (var i = 0; i < 10; i++)
@@ -54,8 +48,8 @@ public class DiscordService
                 var response = Receive();
 
                 Console.WriteLine(response);
-                
-                return true;
+
+                return;
             }
             catch
             {
@@ -63,8 +57,6 @@ public class DiscordService
                 _pipe = null;
             }
         }
-
-        return false;
     }
 
 
@@ -134,25 +126,33 @@ public class DiscordService
 
     private void Send(int opcode, object data)
     {
-        if (_pipe == null)
+        if (!IsPipeConnected)
         {
             return;
         }
-        
-        var json = JsonSerializer.Serialize(data);
 
-        var bytes = Encoding.UTF8.GetBytes(json);
+        try
+        {
+            var json = JsonSerializer.Serialize(data);
 
-        var packet = new byte[8 + bytes.Length];
+            var bytes = Encoding.UTF8.GetBytes(json);
 
-        Array.Copy(BitConverter.GetBytes(opcode), 0, packet, 0, 4);
+            var packet = new byte[8 + bytes.Length];
 
-        Array.Copy(BitConverter.GetBytes(bytes.Length), 0, packet, 4, 4);
-        
-        Array.Copy(bytes, 0, packet, 8, bytes.Length);
-        
-        _pipe.Write(packet);
-        _pipe.Flush();
+            Array.Copy(BitConverter.GetBytes(opcode), 0, packet, 0, 4);
+
+            Array.Copy(BitConverter.GetBytes(bytes.Length), 0, packet, 4, 4);
+
+            Array.Copy(bytes, 0, packet, 8, bytes.Length);
+
+            _pipe!.Write(packet);
+            _pipe.Flush();
+        }
+        catch
+        {
+            _pipe?.Dispose();
+            _pipe = null;
+        }
     }
 
 
@@ -177,7 +177,7 @@ public class DiscordService
     }
 
 
-    public async Task<(string?, DateTime)> GetCurrentTime(DateTime oldTime, string oldGame, string? currentGame)
+    public static (string?, DateTime) GetCurrentTime(DateTime oldTime, string oldGame, string? currentGame)
     {
         if (currentGame != oldGame)
         {
