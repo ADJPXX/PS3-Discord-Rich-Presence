@@ -54,15 +54,20 @@ public sealed class MonitorSessionTests
         Assert.True(session.Completion.IsCompletedSuccessfully);
     }
 
-    [Fact]
-    public async Task FatalWorkerErrorBecomesVisibleAndWaitsForCleanup()
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public async Task FatalWorkerErrorPreservesVisibilityAndWaitsForCleanup(bool? lastPreference, bool expectedUseTray)
     {
         var cleaned = false;
-        var session = new MonitorSession(async (_, _) =>
+        var session = new MonitorSession(async (publish, _) =>
         {
             try
             {
                 await Task.Yield();
+                if (lastPreference is bool useTray)
+                    publish(new MonitorView(useTray, "Connecting"));
                 throw new IOException("file inaccessible");
             }
             finally
@@ -72,7 +77,7 @@ public sealed class MonitorSessionTests
         });
         await session.Completion.WaitAsync(Guard);
         Assert.True(cleaned);
-        Assert.False(session.Latest!.UseTray);
+        Assert.Equal(expectedUseTray, session.Latest!.UseTray);
         Assert.Contains("file inaccessible", session.Latest.Message);
         await session.StopAsync().WaitAsync(Guard);
     }

@@ -25,9 +25,43 @@ public sealed class ConfigTests : IDisposable
         var config = await ConfigService.ReadJsonAsync(ConfigPath, Poll, stop.Token);
         Assert.Equal("192.168.1.35", config.Ps3Ip);
         Assert.Equal(1528636206638694400L, config.ClientId);
-        Assert.True(config.MinimizeToTray);
+        Assert.True(config.HideToTray);
         Assert.Equal(3, config.UpdateIntervalSeconds);
         Assert.Equal(10, config.ReconnectIntervalSeconds);
+    }
+
+    [Theory]
+    [InlineData("""{"Ip":"127.0.0.1","hidetotray":false}""", false)]
+    [InlineData("""{"Ip":"127.0.0.1","HideToTray":false}""", false)]
+    [InlineData("""{"Ip":"127.0.0.1","MinimizeToTray":false}""", false)]
+    [InlineData("""{"Ip":"127.0.0.1","MinimizeToTray":false,"hidetotray":true}""", true)]
+    [InlineData("""{"Ip":"127.0.0.1","hidetotray":false,"MinimizeToTray":true}""", false)]
+    public async Task RecognizesTrayPreferenceAndPrefersCanonicalKey(string json, bool expected)
+    {
+        await File.WriteAllTextAsync(ConfigPath, json);
+        using var stop = new CancellationTokenSource(Limit);
+        var config = await ConfigService.ReadJsonAsync(ConfigPath, Poll, stop.Token);
+        Assert.Equal(expected, config.HideToTray);
+    }
+
+    [Fact]
+    public async Task InvalidConfigReportsVisibilityChangesEvenWhenTheDiagnosticIsUnchanged()
+    {
+        using var stop = new CancellationTokenSource(Limit);
+        var snapshots = new Queue<string>([
+            """{"Ip":"","hidetotray":false}""",
+            """{"Ip":"","hidetotray":true}""",
+            """{"Ip":"127.0.0.1","hidetotray":false,"ClientId":"invalid"}""",
+            """{"Ip":"127.0.0.1","hidetotray":"false"}""",
+            """{"hidetotray":false,""",
+            Valid
+        ]);
+        var notices = new List<(string Message, bool Hidden)>();
+        await ConfigService.ReadJsonAsync(ConfigPath, Poll, stop.Token,
+            (message, hidden) => notices.Add((message, hidden)),
+            (_, _) => Task.FromResult(snapshots.Dequeue()));
+        Assert.Equal(new[] { false, true, false, true, true }, notices.Select(n => n.Hidden));
+        Assert.Equal(notices[0].Message, notices[1].Message);
     }
 
     [Theory]
@@ -109,7 +143,11 @@ public sealed class ConfigTests : IDisposable
         }).ToArray();
         start.SetResult();
         await Task.WhenAll(publishers).WaitAsync(stop.Token);
-        var template = JsonSerializer.Deserialize<Config>(await File.ReadAllTextAsync(ConfigPath, stop.Token));
+        var json = await File.ReadAllTextAsync(ConfigPath, stop.Token);
+        using var document = JsonDocument.Parse(json);
+        Assert.True(document.RootElement.GetProperty("hidetotray").GetBoolean());
+        Assert.False(document.RootElement.TryGetProperty("MinimizeToTray", out _));
+        var template = JsonSerializer.Deserialize<Config>(json);
         Assert.Equal("YOUR_PS3_IP_HERE", template!.Ps3Ip);
         await File.WriteAllTextAsync(ConfigPath, Valid, stop.Token);
         await ConfigService.InstallTemplateAsync(ConfigPath, stop.Token);

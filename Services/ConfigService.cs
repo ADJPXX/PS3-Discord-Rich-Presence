@@ -8,7 +8,7 @@ namespace PS3DiscordRichPresence.Services;
 
 public static class ConfigService
 {
-    private static readonly string JsonPath = Path.Combine(AppContext.BaseDirectory, "PS3config.json");
+    internal static string JsonPath { get; } = Path.Combine(AppContext.BaseDirectory, "PS3config.json");
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
     private static readonly JsonSerializerOptions TemplateOptions = new() { WriteIndented = true };
     // Task.Delay's maximum finite timeout is UInt32.MaxValue - 1 milliseconds.
@@ -18,29 +18,41 @@ public static class ConfigService
     public static Task<Config> ReadJsonAsync(CancellationToken token, Action<string>? onWaiting = null) =>
         Task.Run(() => ReadJsonAsync(JsonPath, TimeSpan.FromSeconds(1), token, onWaiting), token);
 
-    internal static async Task<Config> ReadJsonAsync(
+    internal static Task<Config> ReadJsonAsync(CancellationToken token, Action<string, bool> onWaiting) =>
+        Task.Run(() => ReadJsonAsync(JsonPath, TimeSpan.FromSeconds(1), token, onWaiting), token);
+
+    internal static Task<Config> ReadJsonAsync(
         string path, TimeSpan pollInterval, CancellationToken token, Action<string>? onWaiting = null,
+        Func<string, CancellationToken, Task<string>>? readText = null) =>
+        ReadJsonAsync(path, pollInterval, token, (message, _) => onWaiting?.Invoke(message), readText);
+
+    internal static async Task<Config> ReadJsonAsync(
+        string path, TimeSpan pollInterval, CancellationToken token, Action<string, bool> onWaiting,
         Func<string, CancellationToken, Task<string>>? readText = null)
     {
         readText ??= ReadSnapshotAsync;
-        string? lastMessage = null;
+        (string Message, bool HideToTray)? lastNotice = null;
         while (true)
         {
             token.ThrowIfCancellationRequested();
             string message;
+            bool hideToTray = true;
             try
             {
                 try
                 {
                     // On Windows this sharing mode excludes an in-place writer for the entire read.
                     var json = await readText(path, token).ConfigureAwait(false);
-                    var config = JsonSerializer.Deserialize<Config>(json);
+                    using var document = JsonDocument.Parse(json);
+                    hideToTray = ReadTrayPreference(document.RootElement);
+                    var config = document.RootElement.Deserialize<Config>();
                     if (config is null || !IPAddress.TryParse(config.Ps3Ip, out var ip))
                         throw new InvalidDataException("Enter a valid IP address in Ip.");
                     if (config.ClientId <= 0)
                         throw new InvalidDataException("ClientId must be a positive integer.");
 
                     config.Ps3Ip = ip.ToString();
+                    config.HideToTray = hideToTray;
                     config.UpdateIntervalSeconds = Math.Clamp(config.UpdateIntervalSeconds, 3, MaximumDelaySeconds);
                     config.ReconnectIntervalSeconds = Math.Clamp(config.ReconnectIntervalSeconds, 10, MaximumDelaySeconds);
                     token.ThrowIfCancellationRequested();
@@ -69,14 +81,42 @@ public static class ConfigService
                 // ERROR_SHARING_VIOLATION and ERROR_LOCK_VIOLATION are retryable while editing.
                 message = ex.Message;
             }
-
-            if (message != lastMessage)
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
             {
-                onWaiting?.Invoke($"Waiting for configuration at {path}. {message}");
-                lastMessage = message;
+                onWaiting($"Unable to read configuration at {path}. {ex.Message}", true);
+                throw;
+            }
+
+            if (lastNotice != (message, hideToTray))
+            {
+                onWaiting($"Waiting for configuration at {path}. {message}", hideToTray);
+                lastNotice = (message, hideToTray);
             }
             await Task.Delay(pollInterval, token).ConfigureAwait(false);
         }
+    }
+
+    private static bool ReadTrayPreference(JsonElement root)
+    {
+        if (root.ValueKind != JsonValueKind.Object)
+            return true;
+
+        // The canonical key wins regardless of where the old key appears in the file.
+        JsonElement? current = null;
+        JsonElement? legacy = null;
+        foreach (var property in root.EnumerateObject())
+        {
+            if (property.Name.Equals("hidetotray", StringComparison.OrdinalIgnoreCase))
+                current = property.Value;
+            else if (property.Name.Equals("MinimizeToTray", StringComparison.OrdinalIgnoreCase))
+                legacy = property.Value;
+        }
+        return (current ?? legacy)?.ValueKind switch
+        {
+            null or JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            _ => throw new InvalidDataException("Set hidetotray to true or false.")
+        };
     }
 
     private static async Task<string> ReadSnapshotAsync(string path, CancellationToken token)

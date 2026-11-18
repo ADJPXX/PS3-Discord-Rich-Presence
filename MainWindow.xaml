@@ -1,14 +1,159 @@
 <Window x:Class="PS3DiscordRichPresence.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="PS3 Discord Rich Presence" Width="480" SizeToContent="Height"
-        MinWidth="300" WindowStartupLocation="CenterScreen">
-    <StackPanel Margin="20">
-        <TextBlock x:Name="StatusMessage" TextWrapping="Wrap" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-            <Button x:Name="CloseButton" Content="Close" Click="CloseClick" Padding="14,4"
-                    Margin="0,0,8,0" Visibility="Collapsed" />
-            <Button x:Name="ExitButton" Content="Exit" Padding="14,4" />
-        </StackPanel>
-    </StackPanel>
+        Title="PS3 Discord Rich Presence" Width="858" Height="608" MinWidth="350" MinHeight="370"
+        WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FontSize="14"
+        Background="#10141E" Foreground="#F3F6FD" UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/DashboardTheme.xaml"/>
+                <ResourceDictionary Source="Resources/ConsoleArt.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Background="{StaticResource Ink}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition/><RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border BorderBrush="#2C3546" BorderThickness="0,0,0,1" Background="#151A25" Padding="20,12">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Border Width="34" Height="34" Background="#232D3E" CornerRadius="8">
+                        <Image x:Name="BrandMark" Width="25" Height="25" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Border>
+                    <TextBlock x:Name="BrandText" Text="PS3 Rich Presence" FontSize="16" FontWeight="SemiBold" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Border HorizontalAlignment="Right" VerticalAlignment="Center" CornerRadius="8" Padding="3" Background="#10141E">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="OverviewTab" GroupName="Pages" Content="Overview" Style="{StaticResource Tab}"
+                                     Checked="SelectPage" IsChecked="True"/>
+                        <RadioButton x:Name="DiagnosticsTab" GroupName="Pages" Content="Diagnostics" Style="{StaticResource Tab}"
+                                     Checked="SelectPage"/>
+                    </StackPanel>
+                </Border>
+            </DockPanel>
+        </Border>
+        <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer.Resources>
+                <Style TargetType="ScrollBar">
+                    <Setter Property="Width" Value="12"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ScrollBar">
+                                <Track x:Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True"
+                                       Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
+                                       ViewportSize="{TemplateBinding ViewportSize}"
+                                       Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False"/>
+                                    </Track.DecreaseRepeatButton>
+                                    <Track.Thumb>
+                                        <Thumb>
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="Thumb">
+                                                    <Border Background="#59708A" CornerRadius="3" Margin="3,2"/>
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+                                        </Thumb>
+                                    </Track.Thumb>
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False"/>
+                                    </Track.IncreaseRepeatButton>
+                                </Track>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ScrollViewer.Resources>
+            <Grid x:Name="Page" Margin="28,22,28,18" MaxWidth="1100">
+                <StackPanel x:Name="OverviewPage">
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock x:Name="PageTitle" Text="Activity overview" FontSize="28" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="LastCheck" Grid.Column="1" Style="{StaticResource Caption}"
+                                   VerticalAlignment="Center" Margin="12,0,0,0"/>
+                    </Grid>
+                    <Border CornerRadius="15" BorderThickness="1" BorderBrush="#405776">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                <GradientStop Color="#1B2C3F" Offset="0"/><GradientStop Color="#223551" Offset=".48"/>
+                                <GradientStop Color="#33476D" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Grid MinHeight="167">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition x:Name="ArtColumn" Width="2*"/></Grid.ColumnDefinitions>
+                            <StackPanel Margin="22,18,8,20" VerticalAlignment="Center">
+                                <TextBlock Text="CURRENT ACTIVITY" FontFamily="Consolas" FontWeight="Bold" Foreground="#9CEBD7" FontSize="12"/>
+                                <TextBlock x:Name="ActivityTitle" Margin="0,8,0,4" FontSize="30" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="ActivityDetail" Foreground="#CAD9EC" FontSize="14"/>
+                                <TextBlock x:Name="Temperature" Margin="0,8,0,0" FontFamily="Consolas" Foreground="#A7F1D9" Visibility="Collapsed"/>
+                            </StackPanel>
+                            <Image x:Name="Illustration" Grid.Column="1" Source="{StaticResource ConsoleArt}" Stretch="Uniform"
+                                   Margin="0,2,12,2" MaxHeight="180" IsHitTestVisible="False"/>
+                        </Grid>
+                    </Border>
+                    <TextBlock Text="Connections" FontSize="19" FontWeight="SemiBold" Margin="0,18,0,9"/>
+                    <Grid x:Name="Connections">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition x:Name="ConnectionGap" Width="12"/><ColumnDefinition x:Name="DiscordColumn"/></Grid.ColumnDefinitions>
+                        <Border x:Name="ConsoleCard" Style="{StaticResource Card}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <Border Width="30" Height="30" CornerRadius="7" Background="#283C39" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,10,0">
+                                        <Path Data="M2,4 H20 V15 H2 Z M7,19 H15 M11,15 V19" Stroke="#91E7CF" StrokeThickness="1.6" Stretch="Uniform" Width="17" Height="16"/>
+                                    </Border>
+                                    <TextBlock Text="PlayStation 3" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <TextBlock x:Name="ConsoleState" Margin="0,10,0,2" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="ConsoleEndpoint" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border x:Name="DiscordCard" Grid.Column="2" Style="{StaticResource Card}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <Border Width="30" Height="30" CornerRadius="7" Background="#323451" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,10,0">
+                                        <Path Data="M3,4 Q11,0 19,4 L21,14 Q18,17 15,17 L13,14 H9 L7,17 Q3,16 1,14 Z M7,9 A1.5,1.8 0 1 0 10,9 A1.5,1.8 0 1 0 7,9 M13,9 A1.5,1.8 0 1 0 16,9 A1.5,1.8 0 1 0 13,9" Fill="#BFBEFF" Width="19" Height="16" Stretch="Uniform"/>
+                                    </Border>
+                                    <TextBlock Text="Discord Desktop" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <TextBlock x:Name="DiscordState" Margin="0,10,0,2" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="DiscordEndpoint" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+                <StackPanel x:Name="DiagnosticsPage" Visibility="Collapsed">
+                    <TextBlock Text="Diagnostics" FontWeight="SemiBold" FontSize="28" Margin="0,0,0,14"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Latest monitor report" FontWeight="SemiBold" FontSize="17" Margin="0,0,0,12"/>
+                            <TextBlock x:Name="StatusMessage" FontFamily="Consolas" FontSize="14" Foreground="#CBDAED" LineHeight="20"/>
+                            <Button x:Name="CopyButton" Content="Copy report" HorizontalAlignment="Left" Margin="0,16,0,0" Click="CopyReport"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+        <Border Grid.Row="2" Background="#151A25" Padding="20,8,14,8" BorderBrush="#2C3546" BorderThickness="0,1,0,0">
+            <StackPanel>
+                <TextBlock x:Name="Notice" Foreground="{StaticResource Amber}" Margin="0,0,0,5" Visibility="Collapsed"
+                           AutomationProperties.LiveSetting="Polite"/>
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <WrapPanel x:Name="ActionBar" VerticalAlignment="Center">
+                        <Button x:Name="ReconnectButton" Content="Reconnect" Background="#A4EFD8" Foreground="#112B27" BorderBrush="#A4EFD8" Margin="0,2,6,2"
+                                ToolTip="Read the configuration and reconnect the monitor"/>
+                        <Button Content="Edit configuration" Click="OpenConfig" Margin="0,2,6,2"
+                                ToolTip="Open PS3config.json in Notepad"/>
+                    </WrapPanel>
+                    <StackPanel x:Name="WindowActions" Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="ExitButton" Content="Exit" Background="Transparent"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
 </Window>

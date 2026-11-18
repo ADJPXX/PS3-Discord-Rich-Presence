@@ -9,7 +9,7 @@ Display the activity of a physical PlayStation 3 on Discord. The Windows applica
 - Looks up game cover art by title ID and uses the registered `xmb` image as a fallback with the built-in Discord application.
 - Reads CPU and RSX temperatures for the status window and activity when enabled.
 - Reconnects to Discord and the PS3, with longer delays during extended outages.
-- Shows PS3 reachability, webMAN diagnostics and Discord acknowledgements in the notification area status window.
+- Shows the current activity, console address, connection states and time of the last check in a resizable desktop dashboard.
 
 ## Requirements
 
@@ -31,18 +31,19 @@ For example:
 
 ```json
 {
-  "Ip": "192.168.1.35"
+  "Ip": "192.168.1.35",
+  "hidetotray": false
 }
 ```
 
 The application accepts a bare IP address. Do not add `http://`, a port or a webMAN path. The default Discord application ID and the other settings have built-in values, so `Ip` is the only required setting.
 
-5. Keep Discord Desktop open. Right-click the app's notification area icon and choose **View status**. On the XMB, the window should show **Discord: ✅ Online**, **PS3: ✅ Online**, **Detected on PS3 (...): XMB.** and **Discord confirmed the current activity.**
+5. Keep Discord Desktop open. With the example configuration, the dashboard opens automatically. On the PS3 home menu, **Overview** shows **XMB**. When Discord accepts the update, its connection card reads **Activity confirmed**.
 6. Start a game. The next successful poll updates the title and, when available, its cover image.
 
 ## Configuration
 
-The configuration file is `PS3config.json` in the same folder as the executable. The application reads it at startup. Exit the app and reopen it after changing settings.
+The configuration file is `PS3config.json` beside the executable. Choose **Edit configuration** in the dashboard or the tray icon's right-click menu to open it in Notepad. After saving, choose **Reconnect** in the dashboard or **Reload configuration** in the tray menu to apply your changes. Restarting also reads the file.
 
 | Property | Default | Description |
 | --- | --- | --- |
@@ -51,15 +52,16 @@ The configuration file is `PS3config.json` in the same folder as the executable.
 | `UpdateIntervalSeconds` | `3` | Polling interval in seconds. Values below 3 are raised to 3. |
 | `ReconnectIntervalSeconds` | `10` | Retry delay in seconds. Values below 10 are raised to 10. Extended PS3 outages use progressively longer delays. |
 | `ShowTemperature` | `false` | Include available CPU and RSX readings in the status window and Discord activity. |
-| `MinimizeToTray` | `true` | Start in notification area mode. Set to `false` to keep the status window visible. |
+| `hidetotray` | `true` | Set to `true` to run in the notification area or `false` to show the dashboard. Older files can use `MinimizeToTray`. If both keys exist, `hidetotray` takes precedence. |
 | `StartWithWindows` | `false` | Start the application at sign-in for the current Windows user. |
 
 The application also accepts larger polling intervals, within the limit supported by .NET timers. Configuration files have a 64 KiB size limit.
 
-## Notification area controls
+## Dashboard and notification area
 
-- **View status** opens the diagnostic window.
-- **Close** hides the window when notification area mode is enabled.
+- **Overview** shows the latest console activity and the status of each connection. With `ShowTemperature` enabled, available CPU and RSX readings appear under the activity title.
+- **Diagnostics** shows the monitor's latest report, including webMAN and Discord errors. **Copy report** copies that text to the clipboard.
+- In tray mode, the monitor runs in the background, including during setup and connection errors. To open the dashboard, set `hidetotray` to `false`, save and select **Reload configuration**.
 - **Exit** stops the monitor, waits for pending work to finish, releases its resources and closes the application.
 
 The tray icon tooltip shows the current top-line status. The status window also distinguishes an unreachable console, an HTTP response without a recognized webMAN status and a confirmed Discord activity.
@@ -81,7 +83,7 @@ Read the diagnostic below the PS3 status. It shows the HTTP error, body timeout 
 
 ### Discord shows offline
 
-Open Discord Desktop in the same Windows session as the monitor. Use the IPC message shown in **View status** to distinguish a missing Discord pipe, access denied and a rejected handshake. If you configured a custom `ClientId`, verify it or remove that property to use the default application.
+Open Discord Desktop in the same Windows session as the monitor. Use the IPC message in **Diagnostics** to distinguish a missing Discord pipe, access denied and a rejected handshake. If you configured a custom `ClientId`, verify it or remove that property to use the default application.
 
 ### Discord confirmed the activity, but others cannot see it
 
@@ -108,7 +110,7 @@ The xUnit suite uses NSubstitute and local test doubles for configuration files,
 
 ## Contributing
 
-Bug reports and pull requests are welcome. For connection reports, include the diagnostic messages from **View status**, the browser result for `/cpursx.ps3` and the PS3 title ID if available.
+Bug reports and pull requests are welcome. For connection reports, include the messages from **Diagnostics**, the browser result for `/cpursx.ps3` and the PS3 title ID if available.
 
 ## License
 

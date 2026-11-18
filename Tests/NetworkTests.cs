@@ -151,7 +151,7 @@ public sealed class NetworkTests
         Assert.Null(connection.Game);
         Assert.Contains("Connection refused", connection.Detail);
         Assert.Contains("127.0.0.1/cpursx.ps3", connection.Detail);
-        foreach (var reason in new[] { "HTTP 403", "recognized", "Encoding", "communication" })
+        foreach (var reason in new[] { "HTTP 403", "recognized", "Invalid encoding", "Communication failed" })
         {
             var reading = await service.ReadStatusAsync();
             Assert.True(reading.Responded);

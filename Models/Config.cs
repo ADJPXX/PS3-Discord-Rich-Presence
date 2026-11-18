@@ -13,6 +13,14 @@ public class Config
     public int UpdateIntervalSeconds { get; set; } = 3;
     public int ReconnectIntervalSeconds { get; set; } = 10;
     public bool ShowTemperature { get; set; }
-    public bool MinimizeToTray { get; set; } = true;
+    [JsonPropertyName("hidetotray")]
+    public bool HideToTray { get; set; } = true;
+
+    [JsonIgnore]
+    public bool MinimizeToTray
+    {
+        get => HideToTray;
+        set => HideToTray = value;
+    }
     public bool StartWithWindows { get; set; }
 }

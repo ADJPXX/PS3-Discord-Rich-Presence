@@ -1,0 +1,41 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- A hardware silhouette drawn in device-independent units for all display scales. -->
+    <DrawingImage x:Key="ConsoleArt">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="Transparent" Geometry="M0,0 H360 V196 H0 Z"/>
+                <GeometryDrawing Geometry="M 30,151 C 85,79 226,44 339,83 M 13,154 C 72,64 227,28 353,76 M 0,149 C 63,52 235,12 359,60 M 65,177 C 150,124 268,105 359,119">
+                    <GeometryDrawing.Pen><Pen Brush="#394E75" Thickness=".85"/></GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#182239" Geometry="M39,145 L133,175 315,129 219,101 Z"/>
+                <GeometryDrawing Brush="#0E1728" Geometry="M40,116 L213,73 310,101 309,127 132,173 41,144 Z"/>
+                <GeometryDrawing Brush="#32425E" Geometry="M40,109 L129,138 131,169 40,140 Q36,125 40,109 Z"/>
+                <GeometryDrawing Brush="#1D2B40" Geometry="M129,138 L309,94 Q315,110 307,126 L131,169 Q135,154 129,138 Z"/>
+                <GeometryDrawing Geometry="M40,109 Q42,99 54,95 L208,56 Q218,54 231,58 L299,81 Q308,84 309,94 L130,140 Z">
+                    <GeometryDrawing.Brush><LinearGradientBrush StartPoint="0,.8" EndPoint=".8,0">
+                        <GradientStop Color="#60759A" Offset="0"/><GradientStop Color="#445572" Offset=".46"/><GradientStop Color="#364761" Offset=".72"/><GradientStop Color="#647B9B" Offset="1"/>
+                    </LinearGradientBrush></GeometryDrawing.Brush>
+                    <GeometryDrawing.Pen><Pen Brush="#8499BA" Thickness=".9"/></GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M133,147 L307,103 M42,120 L125,148">
+                    <GeometryDrawing.Pen><Pen Brush="#788DA7" Thickness="1.35"/></GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M162,147 L288,115">
+                    <GeometryDrawing.Pen><Pen Brush="#091224" Thickness="3.2"/></GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M143,158 l11,-2.8 m3,-.7 l10,-2.6">
+                    <GeometryDrawing.Pen><Pen Brush="#10192A" Thickness="3.2"/></GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#82EACB" Geometry="M293,121 l6,-1.5 v2 l-6,1.5 Z"/>
+                <GeometryDrawing Geometry="M44,127 l79,26 m-79,-22 l79,26 m-79,-22 l79,26">
+                    <GeometryDrawing.Pen><Pen Brush="#202F45" Thickness="1.2"/></GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <!-- The three etched strokes follow the plane of the lid. -->
+                <GeometryDrawing Geometry="M154,100 l13,-3.3 q5,-1.3 1,-2.9 l-7,-2.3 -15,3.8 m27,2.9 12,-3.1 q4,-1 -.1,-2.4 l-8,-2.6 q-3,-1 -1,-1.7 l10,-2.6 m4,2.1 12,-3.1 -5,-1.7 -11,2.9 m8,4.5 11,-2.9 -4,-1.4">
+                    <GeometryDrawing.Pen><Pen Brush="#A7B8CD" Thickness="1.3"/></GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+</ResourceDictionary>

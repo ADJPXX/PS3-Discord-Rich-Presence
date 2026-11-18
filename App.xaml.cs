@@ -1,5 +1,4 @@
 using System.Drawing;
-using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -21,10 +20,9 @@ public partial class App
     private Icon? _icon;
     private MainWindow? _statusWindow;
     private MonitorView? _displayed;
-    private string? _trayError;
-    private bool _statusRequested;
-    private string? _dismissedWarning;
+    private long _retryTrayAfter;
     private bool _closing;
+    private bool _restarting;
 
     public App() : this(MonitorSession.RunAsync) { }
 
@@ -47,86 +45,111 @@ public partial class App
         _timer.Start();
     }
 
+    internal TaskbarIcon? Tray => _tray;
+
     private void RefreshView(object? sender, EventArgs e)
     {
         var view = _session?.Latest;
-        if (_closing || view is null || view == _displayed)
+        if (_closing || view is null)
             return;
+
+        if (view.UseTray)
+        {
+            if (_statusWindow?.IsVisible == true)
+                _statusWindow.Hide();
+            if (_tray is null && Environment.TickCount64 >= _retryTrayAfter)
+                CreateTray();
+            if (_tray is not null && view != _displayed)
+            {
+                var tooltip = $"PS3 Discord Rich Presence\n{view.Warning ?? view.Message}";
+                _tray.ToolTipText = tooltip.Length <= 127 ? tooltip : tooltip[..126] + "…";
+            }
+        }
+        else if (view != _displayed)
+        {
+            DisposeTray();
+            ShowDashboard(view);
+        }
         _displayed = view;
-
-        if (view.UseTray && _tray is null && _trayError is null)
-        {
-            try
-            {
-                var menu = new ContextMenu();
-                var status = new MenuItem { Header = "View status" };
-                status.Click += (_, _) => ShowStatus();
-                menu.Items.Add(status);
-                var exit = new MenuItem { Header = "Exit" };
-                exit.Click += RequestExit;
-                menu.Items.Add(exit);
-                _icon = _loadIcon();
-                _tray = new TaskbarIcon();
-                _tray.Icon = _icon;
-                _tray.ContextMenu = menu;
-            }
-            catch (Exception error) when (error is IOException or ArgumentException or ExternalException)
-            {
-                DisposeTray();
-                _trayError = $"Notification area icon is unavailable. {error.Message}";
-            }
-        }
-
-        if (_tray is not null)
-            _tray.ToolTipText = view.UseTray ? "PS3 Discord Rich Presence\n" + view.Message : "PS3 Discord Rich Presence";
-
-        if (view.Warning is null)
-            _dismissedWarning = null;
-        if (view.UseTray && _tray is not null && !_statusRequested && view.Warning == _dismissedWarning)
-        {
-            _statusWindow?.Hide();
-            return;
-        }
-
-        RenderStatus(view);
     }
 
-    internal void ShowStatus()
+    private void CreateTray()
     {
-        if (_closing || _displayed is null)
-            return;
-        _statusRequested = true;
-        RenderStatus(_displayed);
-        if (_statusWindow!.WindowState == WindowState.Minimized)
-            _statusWindow.WindowState = WindowState.Normal;
-        _statusWindow.Activate();
+        try
+        {
+            var menu = new ContextMenu();
+            var edit = new MenuItem { Header = "Edit configuration" };
+            edit.Click += (_, _) =>
+            {
+                if (ConfigurationEditor.TryOpen() is { } error)
+                    _tray?.ShowBalloonTip("Configuration", error, BalloonIcon.Warning);
+            };
+            menu.Items.Add(edit);
+            var reload = new MenuItem { Header = "Reload configuration" };
+            reload.Click += Reconnect;
+            menu.Items.Add(reload);
+            var exit = new MenuItem { Header = "Exit" };
+            exit.Click += RequestExit;
+            menu.Items.Add(exit);
+            _icon = _loadIcon();
+            _tray = new TaskbarIcon();
+            _tray.Icon = _icon;
+            _tray.ContextMenu = menu;
+            _displayed = null;
+        }
+        catch (Exception error) when (error is IOException or ArgumentException or ExternalException)
+        {
+            DisposeTray();
+            System.Diagnostics.Trace.TraceWarning("Notification area icon is unavailable: {0}", error.Message);
+            _retryTrayAfter = Environment.TickCount64 + 10_000;
+        }
     }
 
-    private void RenderStatus(MonitorView view)
+    private void ShowDashboard(MonitorView view)
     {
         if (_statusWindow is null)
         {
             _statusWindow = new MainWindow();
-            _statusWindow.Closing += OnStatusClosing;
             _statusWindow.Closed += RequestExit;
             _statusWindow.ExitButton.Click += RequestExit;
+            _statusWindow.ReconnectButton.Click += Reconnect;
         }
-        _statusWindow.CloseButton.Visibility = view.UseTray && _tray is not null
-            ? Visibility.Visible : Visibility.Collapsed;
-        _statusWindow.StatusMessage.Text = string.Join("\n\n",
-            new[] { view.Message, view.Details, view.Warning, _trayError }.Where(text => !string.IsNullOrWhiteSpace(text)));
+        _statusWindow.Render(view);
         if (!_statusWindow.IsVisible)
             _statusWindow.Show();
     }
 
-    private void OnStatusClosing(object? sender, CancelEventArgs e)
+    private async void Reconnect(object sender, RoutedEventArgs e) => await ReloadAsync();
+
+    internal async Task ReloadAsync()
     {
-        if (_closing || _tray is null || _displayed?.UseTray != true)
+        if (_closing || _restarting || _session is null)
             return;
-        e.Cancel = true;
-        _statusRequested = false;
-        _dismissedWarning = _displayed.Warning;
-        _statusWindow!.Hide();
+
+        _restarting = true;
+        _timer?.Stop();
+        if (_statusWindow is not null)
+        {
+            _statusWindow.ReconnectButton.IsEnabled = false;
+            _statusWindow.Hide();
+        }
+        try
+        {
+            await _session.StopAsync();
+            if (_closing)
+                return;
+
+            _displayed = null;
+            _retryTrayAfter = 0;
+            _session = new MonitorSession(_run);
+            _timer?.Start();
+        }
+        finally
+        {
+            _restarting = false;
+            if (_statusWindow is not null)
+                _statusWindow.ReconnectButton.IsEnabled = !_closing;
+        }
     }
 
     private async void RequestExit(object? sender, EventArgs e)

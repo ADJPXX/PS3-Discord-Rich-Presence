@@ -5,7 +5,15 @@ using PS3DiscordRichPresence.Models;
 
 namespace PS3DiscordRichPresence.Services;
 
-internal sealed record MonitorView(bool UseTray, string Message, string? Warning = null, string? Details = null);
+internal enum MonitorPhase { Setup, Connecting, Monitoring, Stopped }
+
+internal sealed record MonitorView(bool UseTray, string Message, string? Warning = null, string? Details = null)
+{
+    internal MonitorPhase Phase { get; init; } = MonitorPhase.Connecting;
+    internal PollResult? Sample { get; init; }
+    internal string? ConsoleAddress { get; init; }
+    internal DateTimeOffset? CheckedAt { get; init; }
+}
 
 internal sealed class MonitorSession
 {
@@ -33,7 +41,10 @@ internal sealed class MonitorSession
             catch (Exception error)
             {
                 Trace.TraceError(error.ToString());
-                Volatile.Write(ref _latest, new MonitorView(false, $"Monitoring stopped.\n{error.Message}"));
+                Volatile.Write(ref _latest, new MonitorView(Latest?.UseTray ?? true, $"Monitoring stopped.\n{error.Message}")
+                {
+                    Phase = MonitorPhase.Stopped
+                });
             }
         });
     }
@@ -59,8 +70,11 @@ internal sealed class MonitorSession
 
     internal static async Task RunAsync(Action<MonitorView> publish, CancellationToken token)
     {
-        var config = await ConfigService.ReadJsonAsync(token, message => publish(new MonitorView(false, message)));
+        var config = await ConfigService.ReadJsonAsync(token, (message, hideToTray) =>
+            publish(new MonitorView(hideToTray, message) { Phase = MonitorPhase.Setup }));
         token.ThrowIfCancellationRequested();
+        // Remember the preference even if a service constructor fails before the first poll.
+        publish(new MonitorView(config.HideToTray, "Connecting to the PS3 and Discord.") { ConsoleAddress = config.Ps3Ip });
         using var webMan = new WebManService(config);
         // The built-in Discord application registers "xmb". Custom applications may have per-title assets.
         using var images = new GameImageService(fallbackAsset: config.ClientId == Config.DefaultClientId ? "xmb" : null);
@@ -76,12 +90,21 @@ internal sealed class MonitorSession
         wait ??= Task.Delay;
         var failures = 0;
         var warning = ConfigureStartup(config, applyStartup);
-        publish(new MonitorView(config.MinimizeToTray, "Connecting to the PS3 and Discord.", warning));
+        publish(new MonitorView(config.HideToTray, "Connecting to the PS3 and Discord.", warning)
+        {
+            ConsoleAddress = config.Ps3Ip
+        });
         while (true)
         {
             token.ThrowIfCancellationRequested();
             var result = await poll(token);
-            publish(new MonitorView(config.MinimizeToTray, result.DisplayText, warning, result.Describe(config.Ps3Ip)));
+            publish(new MonitorView(config.HideToTray, result.DisplayText, warning, result.Describe(config.Ps3Ip))
+            {
+                Phase = MonitorPhase.Monitoring,
+                Sample = result,
+                CheckedAt = DateTimeOffset.UtcNow,
+                ConsoleAddress = config.Ps3Ip
+            });
             var seconds = config.UpdateIntervalSeconds;
             if (result.DiscordOnline && result.Ps3Online)
             {
