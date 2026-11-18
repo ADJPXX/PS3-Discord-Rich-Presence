@@ -1,9 +1,7 @@
 name: Build Release
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -13,33 +11,27 @@ jobs:
     runs-on: windows-latest
 
     steps:
-
-      - name: Clonar repositório
+      - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Instalar .NET
+      - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
 
-      - name: Restaurar pacotes
-        run: dotnet restore
+      - name: Restore packages
+        run: dotnet restore ./PS3DiscordRichPresence.sln
 
-      - name: Publicar projeto
-        run: |
-          dotnet publish ./PS3DiscordRichPresence.csproj `
-            -c Release `
-            -r win-x64 `
-            --self-contained true `
-            /p:PublishSingleFile=true `
-            /p:PublishTrimmed=false `
-            /p:IncludeNativeLibrariesForSelfExtract=true `
-            -o publish
+      - name: Run regression tests
+        run: dotnet test ./PS3DiscordRichPresence.sln -c Release --no-restore
 
-      - name: Criar Release
+      - name: Publish the application
+        run: dotnet publish ./PS3DiscordRichPresence.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false /p:IncludeNativeLibrariesForSelfExtract=true -o publish
+
+      - name: Create a release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
+          tag_name: ${{ github.run_number }}
           name: Build ${{ github.run_number }}
           generate_release_notes: true
           files: |

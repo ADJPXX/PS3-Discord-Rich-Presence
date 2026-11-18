@@ -8,4 +8,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
     }
+
+    private void CloseClick(object sender, RoutedEventArgs e) => Close();
 }

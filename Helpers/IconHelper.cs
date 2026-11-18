@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
 
@@ -14,7 +14,7 @@ public static class IconHelper
 
         if (resourceName is null)
         {
-            throw new FileNotFoundException("Ícone embutido não encontrado.");
+            throw new FileNotFoundException("Embedded icon resource was not found.");
         }
 
         using var stream = assembly.GetManifestResourceStream(resourceName)!;
